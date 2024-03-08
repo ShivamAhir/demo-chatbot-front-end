@@ -5,19 +5,31 @@ import Answer from './Answer/Answer';
 import Thanks from './Thanks/Thanks';
 import Option from './Option/Option';
 import { CircularProgress } from '@mui/material';
-import { useState } from 'react'; // Import useState hook
+import { useState, useEffect } from 'react'; // Import useState and useEffect hooks
 
 function App() {
   const [answers, setAnswers] = useState([]); // State for storing answers
   const [inputN, setInputN] = useState(''); // State for input value
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // State for current question index
   const [chat, setChat] = useState([]); // State for chat history
+  const [showQuestions, setShowQuestions] = useState(false); // State to control when to show questions
+
+  useEffect(() => {
+    // Set a timer to show questions after 2 seconds
+    const timer = setTimeout(() => {
+      setShowQuestions(true);
+    }, 2000);
+
+    // Clear the timer when component unmounts or when showQuestions becomes true
+    return () => clearTimeout(timer);
+  }, [currentQuestionIndex]); // Run this effect only once after initial render
 
   const handleSend = () => {
     const newChatEntry = {
       question: questions[currentQuestionIndex],
       answer: inputN
     };
+    setShowQuestions(false);
     setChat(prevChat => [...prevChat, newChatEntry]); // Update chat history with the new entry
     setAnswers(prevAnswers => [...prevAnswers, inputN]); // Append inputN to answers array
     setInputN(''); // Clear inputN after sending
@@ -29,6 +41,7 @@ function App() {
       question: questions[currentQuestionIndex],
       answer: option
     };
+    setShowQuestions(false);
     setChat(prevChat => [...prevChat, newChatEntry]); // Update chat history with the new entry
     setAnswers(prevAnswers => [...prevAnswers, option]); // Append inputN to answers array
     setInputN(''); // Clear inputN after sending
@@ -58,13 +71,16 @@ function App() {
             <Answer message={entry.answer} />
           </div>
         ))}
-        {currentQuestionIndex < questions.length && (
+        {showQuestions && currentQuestionIndex < questions.length && (
           <div>
             <QuestionComponent message={questions[currentQuestionIndex]} />
             {(currentQuestionIndex === 2 || currentQuestionIndex === 3 || currentQuestionIndex === 5 || currentQuestionIndex === 7) && (
               <Option onYes={() => handleOptionSelection('Yes')} onNo={() => handleOptionSelection('No')} />
             )}
           </div>
+        )}
+        {!showQuestions && (
+          <CircularProgress style={{marginLeft:"1vw"}} />
         )}
         {allQuestionsAnswered && (
           <div>
